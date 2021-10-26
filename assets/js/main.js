@@ -1,65 +1,110 @@
-let form = document.getElementById("form");
 let tbody = document.getElementById("tbody");
+let form = document.getElementById("form");
+let data = [];
+let id = null;
 
-form.addEventListener("submit" , (e)=>{
+//Data Storage
+if (JSON.parse(localStorage.getItem("root"))) {
+    data = JSON.parse(localStorage.getItem("root"));
+    render();
+}
+
+
+form.addEventListener("submit" , (e) => {
     e.preventDefault();
-    
-    let nameValue = document.getElementById("name").value;
-    let familyValue = document.getElementById("family").value;
-    let emailValue = document.getElementById("email").value;
-    let phoneValue = document.getElementById("phone").value;
 
-    const nameFamilyPattern = /[پچجحخهعغفقثصضشسیبلاتنمکگوئدذرزطظژؤإأءًٌٍَُِّ\s]+$/;
-    const emailPattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const phonePattern = /^(\+98|0)?9\d{9}$/;
+    if (id == null) {
+        //Creat Section
+        let nameValue = document.getElementById("name").value;
+        let familyValue = document.getElementById("family").value;
+        let emailValue = document.getElementById("email").value;
+        let phoneValue = document.getElementById("phone").value;
 
-    if (nameValue.match(nameFamilyPattern) && familyValue.match(nameFamilyPattern)  && emailValue.match(emailPattern) && phoneValue.match(phonePattern))
-    {
-        let newUser = `
-        <tr>
-            <th scope="col" class="text-center"><i class="fa fa-close" onclick="remove(event)"></i></th>
-            <th scope="col" class="text-center"><i class="fa fa-edit" onclick="edit(event)"></i></th>
-            <th scope="col" class="text-center name">${nameValue}</th>
-            <th scope="col" class="text-center family">${familyValue}</th>
-            <th scope="col" class="text-center email">${emailValue}</th>
-            <th scope="col" class="text-center phone">${phoneValue}</th>
-        </tr>
-        `
+        let newObj = {
+            name: nameValue,
+            family: familyValue,
+            email: emailValue,
+            phone: phoneValue
+        }
 
-        tbody.insertAdjacentHTML("beforeend" , newUser);
-    
+        data.push(newObj);
+
+        render();
+
         Swal.fire(
             'تبریک!',
-            'حساب کابری شما ایجاد شد.',
+            'عضویت شما با موفقیت انجام شد.',
             'success'
           )
     }
     else{
+        //Edit Section
+        let nameValue = document.getElementById("name").value;
+        let familyValue = document.getElementById("family").value;
+        let emailValue = document.getElementById("email").value;
+        let phoneValue = document.getElementById("phone").value;
+
+        let newObj = {
+            name: nameValue,
+            family: familyValue,
+            email: emailValue,
+            phone: phoneValue
+        }
+
+        data = data.map((item , index) => id !== index ? item : newObj)
+
+        id = null;
+
+        render();
+
         Swal.fire(
-            'خطا!',
-            'اطلاعات وارد شده معتبر نیستند.',
-            'error'
+            'تبریک!',
+            'ویرایش با موفقیت انجام شد.',
+            'success'
           )
     }
-});
 
-function remove (event) {
-    let tabelRow = event.target.parentElement.parentElement;
+    localStorage.clear();
+    localStorage.setItem("root" , JSON.stringify(data));
+})
 
-    tabelRow.remove();
-};
+//Delete Section
+function remove(index){
+    data.splice(index , 1);
 
-function edit (event) {
-    let tabelRow = event.target.parentElement.parentElement;
+    render();
 
-    let newName = prompt("Edit your name:" , tabelRow.querySelector(".name").innerHTML);
-    let newFamily = prompt("Edit your family:" , tabelRow.querySelector(".family").innerHTML);
-    let newEmail = prompt("Edit your email:" , tabelRow.querySelector(".email").innerHTML);
-    let newPhone = prompt("Edit your phone:" , tabelRow.querySelector(".phone").innerHTML);
+    localStorage.clear();
+    localStorage.setItem("root" , JSON.stringify(data));
+}
 
-    tabelRow.querySelector(".name").innerHTML = newName;
-    tabelRow.querySelector(".family").innerHTML = newFamily;
-    tabelRow.querySelector(".email").innerHTML = newEmail;
-    tabelRow.querySelector(".phone").innerHTML = newPhone;
 
-};
+function edit(index){
+    document.getElementById("name").value = data[index].name;
+    document.getElementById("family").value = data[index].family;
+    document.getElementById("email").value = data[index].email;
+    document.getElementById("phone").value = data[index].phone;
+
+    id = index;
+}
+
+
+function render(){
+    tbody.innerHTML = "";
+
+    data.forEach((item , index) => {
+        let newUser = `
+        <tr>
+            <th scope="col" class="text-center"><i class="fa fa-close" onclick="remove(${index})"></i></th>
+            <th scope="col" class="text-center"><i class="fa fa-edit" onclick="edit(${index})"></i></th>
+            <th scope="col" class="text-center name">${item.name}</th>
+            <th scope="col" class="text-center family">${item.family}</th>
+            <th scope="col" class="text-center email">${item.email}</th>
+            <th scope="col" class="text-center phone">${item.phone}</th>
+        </tr>
+        `
+
+        tbody.insertAdjacentHTML("beforeend" , newUser);
+    })
+}
+render();
